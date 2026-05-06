@@ -1,0 +1,71 @@
+#pragma config FOSC = INTRC_NOCLKOUT, WDTE = OFF, PWRTE = OFF, MCLRE = OFF, CP = OFF, LVP = OFF
+
+#define _XTAL_FREQ 8000000
+#include <xc.h>
+#include <stdio.h>
+#include <math.h>
+#include "LCD.h" // Includem biblioteca noastra
+
+#define LED_ROSU PORTEbits.RE0
+#define LED_BLUE PORTEbits.RE1
+
+unsigned int ADC_Read(unsigned char channel) {
+    ADCON0 = (ADCON0 & 0xC3) | (channel << 2) | 0x01;
+    __delay_ms(2); 
+    GO_nDONE = 1;
+    while(GO_nDONE);
+    return ((ADRESH << 8) + ADRESL);
+}
+
+void main(void) {
+    unsigned int rawT, rawL, rawH;
+    float temp, lux, humid, vL, vH, rLdr;
+    char lcd_msg[17];
+
+    OSCCON = 0x71;       
+    ANSEL = 0b00000111;  
+    ANSELH = 0x00;       
+    TRISA = 0b00000111;  
+    TRISD = 0x00;        
+    TRISE = 0x00;        
+    PORTD = 0x00; PORTE = 0x00;
+    ADCON0 = 0x01; ADCON1 = 0x80;
+
+    lcd_init();
+
+    while(1) {
+        // 1. Temperatura (AN0)
+        rawT = ADC_Read(0);
+        temp = (rawT * 500.0) / 1023.0;
+
+        // 2. Lumina (AN1)
+        rawL = ADC_Read(1);
+        vL = (rawL * 5.0) / 1023.0;
+        if(vL <= 0.1) vL = 0.1; 
+        if(vL >= 4.9) vL = 4.9; 
+        rLdr = (10000.0 * vL) / (5.0 - vL);
+        lux = pow(440000.0 / rLdr, 1.33) / 10.0;
+
+        // 3. Umiditate (AN2)
+        rawH = ADC_Read(2);
+        vH = (rawH * 5.0) / 1023.0;
+        humid = (vH / 5.0 - 0.1515) / 0.00636;
+        if(humid < 0) humid = 0; 
+        if(humid > 100) humid = 100;
+
+        // Alarme
+        LED_ROSU = (temp > 35.0) ? 1 : 0;
+        LED_BLUE = (humid <= 60 && humid >= 40) ? 0 : 1;
+
+        // Afisare LCD
+        lcd_goto(0x80);
+        sprintf(lcd_msg, "T:%dC L:%ulx  ", (int)temp, (unsigned int)lux);
+        lcd_puts(lcd_msg);
+
+        lcd_goto(0xC0);
+        sprintf(lcd_msg, "U:%d%% VLAD H.   ", (int)humid);
+        lcd_puts(lcd_msg);
+
+        __delay_ms(500); 
+    }
+}
