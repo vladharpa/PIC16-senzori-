@@ -6,7 +6,7 @@
 #define _XTAL_FREQ 8000000
 #endif
 
-// Defini?ii Pini - Legaturile fizice
+
 #define RS PORTDbits.RD0
 #define EN PORTDbits.RD1
 #define D4 PORTDbits.RD2
