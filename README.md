@@ -1,5 +1,7 @@
 Un mic proiect didactic de monitorizare a mediului ambiant, realizat pentru a exersa bazele programării embedded.
 
+https://ettituiasiro-my.sharepoint.com/:w:/g/personal/vlad_harpa_student_etti_tuiasi_ro/IQB67k3l4P4ESqg-gO7W9i-rAaVjE7ggdjyMlMX8cMKXpEw
+
 Sistemul citește date de la senzori analogici (temp/umiditate/lumină) folosind ADC-ul microcontrolerului și afișează informațiile pe un LCD tip 16x2.
 
 Ce am învățat din acest proiect:
